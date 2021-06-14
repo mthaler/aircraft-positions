@@ -1,1 +1,1 @@
-rootProject.name = "sbur-redis"
+rootProject.name = "aircraft-positions"
