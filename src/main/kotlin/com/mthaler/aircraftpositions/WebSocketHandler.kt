@@ -9,7 +9,7 @@ import java.time.Instant
 import java.util.*
 
 @Component
-class WebSocketHandler(private val repository: AircraftRepository) : TextWebSocketHandler() {
+class WebSocketHandler : TextWebSocketHandler() {
 
     private val sessionList = ArrayList<WebSocketSession>()
 

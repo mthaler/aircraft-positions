@@ -8,26 +8,25 @@ import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.socket.TextMessage
 import java.io.IOException
 
-@EnableScheduling
 @Component
-class PlaneFinderPoller(private val repository: AircraftRepository, private val handler: WebSocketHandler) {
-
-    private val client = WebClient.create("http://localhost:7634/aircraft")
+@EnableScheduling
+class PositionRetriever(private val repository: AircraftRepository, private val handler: WebSocketHandler) {
+    private val client = WebClient.create("http://localhost:7634")
 
     @Scheduled(fixedRate = 1000)
-    private fun pollPlanes() {
+    fun retrieveAircraftPositions(): Iterable<Aircraft> {
         repository.deleteAll()
 
         client.get()
+            .uri("/aircraft")
             .retrieve()
             .bodyToFlux<Aircraft>()
             .filter { !it.reg.isNullOrEmpty() }
             .toStream()
             .forEach { repository.save(it) }
 
-        repository.findAll().forEach { println(it) }
-
         sendPositions()
+        return repository.findAll()
     }
 
     private fun sendPositions() {

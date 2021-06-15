@@ -5,11 +5,11 @@ import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 
 @Controller
-class PositionController(private val repository: AircraftRepository) {
+class PositionController(private val retriever: PositionRetriever) {
 
     @GetMapping("/aircraft")
     fun getCurrentAircraftPositions(model: Model): String {
-        model.addAttribute("currentPositions", repository.findAll())
+        model.addAttribute("currentPositions", retriever.retrieveAircraftPositions())
         return "positions"
     }
 }
