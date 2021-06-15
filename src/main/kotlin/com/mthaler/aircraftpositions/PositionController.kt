@@ -4,8 +4,6 @@ import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToFlux
-
 
 @Controller
 class PositionController(private val repository: AircraftRepository) {
@@ -14,12 +12,7 @@ class PositionController(private val repository: AircraftRepository) {
 
     @GetMapping("/aircraft")
     fun getCurrentAircraftPositions(model: Model): String {
-        val aircraftFlux = repository.deleteAll()
-            .thenMany(client.get()
-                .retrieve()
-                .bodyToFlux<Aircraft>()
-                .filter { !it.reg.isNullOrEmpty() }
-                .flatMap { repository.save(it) })
+        val aircraftFlux = repository.findAll().blockLast()
 
         model.addAttribute("currentPositions", aircraftFlux)
         return "positions"

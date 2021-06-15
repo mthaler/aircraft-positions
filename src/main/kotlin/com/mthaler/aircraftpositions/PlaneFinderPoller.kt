@@ -17,21 +17,17 @@ class PlaneFinderPoller(private val repository: AircraftRepository, private val 
     @Scheduled(fixedRate = 1000)
     private fun pollPlanes() {
         repository.deleteAll()
+            .thenMany(client.get()
+                .retrieve()
+                .bodyToFlux<Aircraft>()
+                .filter { !it.reg.isNullOrEmpty() }
+                .flatMap { repository.save(it) })
+                .doOnComplete( { sendPositions() }).subscribe()
 
-        client.get()
-            .retrieve()
-            .bodyToFlux<Aircraft>()
-            .filter { !it.reg.isNullOrEmpty() }
-            .toStream()
-            .forEach { repository.save(it) }
-
-        repository.findAll().forEach { println(it) }
-
-        sendPositions()
     }
 
     private fun sendPositions() {
-        if (repository.count() > 0) {
+        repository.count().subscribe({ if (it > 0) {
             for (sessionInList in handler.getSessionList()) {
                 try {
                     sessionInList.sendMessage(
@@ -41,6 +37,6 @@ class PlaneFinderPoller(private val repository: AircraftRepository, private val 
                     e.printStackTrace()
                 }
             }
-        }
+        } })
     }
 }
